@@ -6,7 +6,7 @@ services:
     ports:
       - 8085:80
     environment:
-      - APP_KEY=dosisoswUzu9e0UfrlHuqlspotrlvus+
+      - APP_KEY=dosisoswUzu9e0UfrlHuqlspotrlvusa
       - DB_HOST=db
       - DB_USERNAME=monica
       - DB_PASSWORD=secret
