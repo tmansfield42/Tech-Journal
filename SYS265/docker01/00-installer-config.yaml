@@ -6,7 +6,7 @@ network:
       addresses:
         - 10.0.5.12/24
       nameservers:
-        search: [adam.local]
+        search: [michael.local]
         addresses: [10.0.5.5]
       routes:
         - to: default
