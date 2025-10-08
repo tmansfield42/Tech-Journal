@@ -65,12 +65,3 @@ function getFailedLogins($timeBack){
     return $failedloginsTable
 } # End of function getFailedLogins
 
-$timeBack = 100
-$testvariable = getFailedLogins $timeBack | Group-Object -Property User | Select-Object Name, Count | Sort-Object Count -Descending
-
-foreach ($i in $testvariable){
-if ($i.Count -gt 9){
-Write-Host $i.Name "is at risk"
-}
-
-}
