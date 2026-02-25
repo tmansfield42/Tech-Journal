@@ -89,6 +89,28 @@ Function Select-Snapshot([string] $selected_vm_name)
 
 Function PickName([string] $name)
 {
+do {
     $global:name = Read-Host "What name would you like this vm to be called?"
-    return $global:name
+     if ($global:name -notmatch '^[a-zA-Z0-9]+$') {
+         Write-Host "Invalid name. Please use alphanumeric characters only. Try again."
+          }
+        } while ($global:name -notmatch '^[a-zA-Z0-9]+$')
+        return $global:name
+}
+
+Function Final(){
+480Banner
+$conf = Get-480Config -config_path "/home/michael/Tech-Journal/SEC-480/480.json"
+480Connect -server $conf.vcenter_server
+Write-Host "Selecting your VM"
+$folder = Get-Folder -Name "BASEVM"
+$global:selected_vm = Select-VM -folder $folder
+Select-Snapshot
+PickName
+
+$linkedClone = "{0}.linked" -f $global:selected_vm
+$linkedvm = New-VM -LinkedClone -Name $linkedClone -VM $global:selected_vm -ReferenceSnapshot $global:selected_snap -VMHost $conf.esxi_host -Datastore $conf.datastore
+$newvm = New-VM -Name $global:name -VM $linkedvm -VMHost $conf.esxi_host -Datastore $conf.datastore
+$newvm | New-Snapshot -Name "Base"
+$linkedvm | Remove-VM
 }
