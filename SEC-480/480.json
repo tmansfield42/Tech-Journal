@@ -1,0 +1,6 @@
+{
+    "vcenter_server" : "vcenter.michael.local",
+    "vm_folder" : "BASEVM",
+    "esxi_host" : "192.168.3.219",
+    "datastore" : "datastore2"
+}

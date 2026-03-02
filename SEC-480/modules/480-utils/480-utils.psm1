@@ -114,3 +114,101 @@ $newvm = New-VM -Name $global:name -VM $linkedvm -VMHost $conf.esxi_host -Datast
 $newvm | New-Snapshot -Name "Base"
 $linkedvm | Remove-VM
 }
+
+Function New-Network(){
+    $name = Read-Host "what would you like to call this new network?: "
+    $vswitch = New-VirtualSwitch -VMHost 192.168.3.219 -Name $name
+    New-VirtualPortGroup -VirtualSwitch $vswitch -Name $name
+
+}
+
+Function Get-IP(){
+    $vms = Get-VM
+    $index = 1
+        foreach($i in $vms)
+        {
+            Write-Host [$index] $i.Name
+            $index+=1
+        }
+          $pick = Read-Host "Which index number [x] do you wish to pick?"
+        $macname= $vms[$pick -1]
+        Write-Host "You picked " $macname.Name
+    
+    
+    $mac = Get-NetworkAdapter -VM $macname
+    $IP = Get-VMGuest -VM $macname
+    Write-Host "MAC Address: " @($mac.MacAddress)[0], "IP: "@($IP.Ipaddress)[0]
+
+    }
+
+Function StoppaVM(){
+    $vms = Get-VM
+    $index = 1
+        foreach($i in $vms)
+        {
+            Write-Host [$index] $i.Name
+            $index+=1
+        }
+          $pick = Read-Host "Which index number [x] do you wish to TURN OFF?"
+        $turnoff = $vms[$pick -1]
+        Write-Host "You picked " $turnoff.Name
+
+        Stop-VM -VM $turnoff.Name
+}
+
+Function StartaVM(){
+    $vms = Get-VM
+    $index = 1
+        foreach($i in $vms)
+        {
+            Write-Host [$index] $i.Name
+            $index+=1
+        }
+          $pick = Read-Host "Which index number [x] do you wish to TURN ON?"
+        $turnon = $vms[$pick -1]
+        Write-Host "You picked " $turnon.Name
+
+    Start-VM -VM $turnon.Name
+
+}
+
+Function Set-Networkk(){
+
+    $vms = Get-VM
+    $index = 1
+        foreach($i in $vms)
+        {
+            Write-Host [$index] $i.Name
+            $index+=1
+        }
+          $pick = Read-Host "Which index number [x] do you wish to Set Network?"
+        $macname= $vms[$pick -1]
+
+        $networks = Get-NetworkAdapter -VM $macname
+        $index = 1
+        foreach ($i in $networks){
+
+            Write-Host "[$index] name: $($i.Name) network name: $($i.NetworkName)  mac address: $($i.MacAddress)"
+            $index += 1
+        }
+        $adapterpick = Read-Host "Which network adapter do you wish to update?"
+        $adapter = $networks[$adapterpick - 1]
+
+        $availablenet = Get-VirtualNetwork
+        $index = 1
+                foreach($i in $availablenet)
+        {
+            Write-Host [$index] $i.Name
+            $index+=1
+        }
+          $netpick = Read-Host "Which index number [x] do you wish to assign ?"
+        $net = $availablenet[$netpick -1] 
+
+        Set-NetworkAdapter -NetworkAdapter $adapter -NetworkName $net 
+        Write-Host "updated $($adapter.Name) on $($macname.Name) to $net"
+
+    
+        
+
+
+}
