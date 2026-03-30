@@ -1,0 +1,23 @@
+linux:
+    children:
+      rocky:
+        hosts:
+          10.0.5.77:
+            hostname: Rocky1
+            lan_ip: 10.0.5.10
+          10.0.5.76:
+            hostname: RockyTwo
+            lan_ip: 10.0.5.11
+          10.0.5.75:
+            hostname: Rocky3
+            lan_ip: 10.0.5.12
+        vars:
+          device: ens33
+    
+    vars:
+      public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCjs1ZLRMDvFGO+zxrgPjl/c+omOXOxezD9wd4Dvu6dMZh6tLn/8OV/UWqtEF0sUBS2JeDCghccTEc/NGdakgyFRArLpAS9WZcorwRymKIRYOCJPeSS4WFQ6cLvg0mdnyw7F/8b3PjL28pCMFpFOf6zxZaWUZCAc+T8VeT54MYnGklAFGaVU0iZNFAfwhX3BRZ/LMp1ro5bjw01Hac/6ZYQdkq1nBCqoAX31/maS+rlTSx6jCXy5ncKp1lkECKcwAfYWTKUxQ1lVfRlrmqiGxy18YlmE+Z7YMEJg3dIxuOsFbVHszD8C77EtVGG4im/jbW4XE9vtyyEhnS7VjfxOT0PAIY5GkRzUvcZ8hRNGfvrmSCA9Xm5QMOhhXl0TCABHug8vprgdie45+ASQN5U2uD1QYpCZYAQ6ZYThxGnkBvqnBIbuQ52UDS9riuqupE7Bh1HOcoQmt0Nk0WloCSzdwJpgl/N8OJ4FTNFMYCqb+MnaB1FUIOpkOS26eFQtddHtdbgcOgIt9IYfJTXKyLl67nxtfoChfilwMyxrcOx5NN7ZDTLoSbpWlLCnE4TcD+ppnWLe5CQ4nWUZG6OmtzzcEFgLgt2ElV2Sr5AYE0LbqSbw33tIpxCogwsPQeyhtCM69RMNPL1fmaKorUO+HV33IDrfsfKm0CuX9bXEKu8PYCiSw== michael.mansfield"
+      ansible_user: michael
+      prefix: 24
+      gateway: 10.0.5.2
+      name_server: 10.0.5.2
+      domain: blue19.local

@@ -135,9 +135,9 @@ Function Get-IP(){
         Write-Host "You picked " $macname.Name
     
     
-    $mac = Get-NetworkAdapter -VM $macname
-    $IP = Get-VMGuest -VM $macname
-    Write-Host "MAC Address: " @($mac.MacAddress)[0], "IP: "@($IP.Ipaddress)[0]
+    $mac = @((Get-NetworkAdapter -VM $macname).MacAddress)
+    $IP = @((Get-VMGuest -VM $macname).IPAddress)
+    Write-Host "MAC Address: " $($mac[0]), "IP: "$($IP[0])
 
     }
 
