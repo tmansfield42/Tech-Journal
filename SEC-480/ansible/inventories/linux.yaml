@@ -18,12 +18,10 @@ linux:
           device: ens34
           ansible_ssh_extra_args: '-tt'
         hosts:
-          10.0.5.13:
+          10.0.5.30:
             hostname: Ubuntu1
             lan_ip: 10.0.5.30
-          10.0.5.14:
-            hostname: Ubuntu2
-            lan_ip: 10.0.5.31
+
 
     
     vars:

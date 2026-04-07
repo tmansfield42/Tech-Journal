@@ -1,0 +1,70 @@
+- name: Install Splunk 
+  hosts: ubuntu
+  become: yes
+
+  vars_prompt:
+  - name: splunk_admin_pass
+    prompt: "enter splunk admin password"
+    private: yes
+
+  vars:
+    splunk_deb: "splunk-9.4.1-e3bdab203ac8-linux-amd64.deb"
+    splunk_url: "https://download.splunk.com/products/splunk/releases/9.4.1/linux/{{ splunk_deb }}"
+    splunk_home: "/opt/splunk"
+    splunk_user: "michael"
+
+  tasks:
+
+    - name: Download Splunk  .deb
+      get_url:
+        url: "{{ splunk_url }}"
+        dest: "/tmp/{{ splunk_deb }}"
+        mode: '0644'
+
+    - name: Install Splunk 
+      apt:
+        deb: "/tmp/{{ splunk_deb }}"
+        state: present
+
+    - name: Accept license and start Splunk
+      command: >
+        {{ splunk_home }}/bin/splunk start
+        --accept-license --answer-yes --no-prompt
+        --seed-passwd {{ splunk_admin_pass }} 
+      args:
+        creates: "{{ splunk_home }}/var/lib/splunk"
+
+    - name: Enable Splunk to start on boot
+      command: >
+        {{ splunk_home }}/bin/splunk enable boot-start
+        -user {{ splunk_user }} --accept-license --answer-yes --no-prompt
+      args:
+        creates: /etc/init.d/splunk
+
+    - name: Enable receiving on port 9997
+      command: >
+        {{ splunk_home }}/bin/splunk enable listen 9997
+        -auth admin:{{ splunk_admin_pass }} 
+      ignore_errors: yes
+
+    - name: Install UFW
+      apt:
+        name: ufw
+        state: present
+
+    - name: Allow Splunk web UI (port 8000)
+      ufw:
+        rule: allow
+        port: '8000'
+        proto: tcp
+
+    - name: Allow Splunk forwarder receiver (port 9997)
+      ufw:
+        rule: allow
+        port: '9997'
+        proto: tcp
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+        policy: allow

@@ -1,0 +1,56 @@
+- name: install Splunk agent 
+  hosts: ubuntu
+  become: yes
+
+  vars_prompt:
+    - name: splunk_admin_pass
+      prompt: "enter Splunk admin password"
+      private: yes
+
+  vars:
+    forwarder_deb: "splunkforwarder-9.4.1-e3bdab203ac8-linux-amd64.deb"
+    forwarder_url: "https://download.splunk.com/products/universalforwarder/releases/9.4.1/linux/{{ forwarder_deb }}"
+    splunk_home: "/opt/splunkforwarder"
+    splunk_server_ip: "10.0.5.35"
+
+  tasks:
+
+    - name: download Splunk agent 
+      get_url:
+        url: "{{ forwarder_url }}"
+        dest: "/tmp/{{ forwarder_deb }}"
+        mode: '0644'
+
+    - name: install Splunk agent
+      apt:
+        deb: "/tmp/{{ forwarder_deb }}"
+        state: present
+
+    - name: start and accept license
+      command: >
+        {{ splunk_home }}/bin/splunk start
+        --accept-license --answer-yes --no-prompt
+        --seed-passwd {{ splunk_admin_pass }}
+      args:
+        creates: "{{ splunk_home }}/var/lib/splunk"
+
+    - name: Enable on boot
+      command: >
+        {{ splunk_home }}/bin/splunk enable boot-start
+        --accept-license --answer-yes --no-prompt
+      args:
+        creates: /etc/init.d/splunkforwarder
+
+    - name: point agent to Splunk server
+      command: >
+        {{ splunk_home }}/bin/splunk add forward-server
+        {{ splunk_server_ip }}:9997
+        -auth admin:{{ splunk_admin_pass }}
+
+    - name: add /var/log for log input
+      command: >
+        {{ splunk_home }}/bin/splunk add monitor /var/log
+        -auth admin:{{ splunk_admin_pass }}
+
+    - name: restart endpoint 
+      command: "{{ splunk_home }}/bin/splunk restart"
