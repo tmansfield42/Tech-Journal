@@ -1,0 +1,28 @@
+---
+- name: Finish AD setup on dc-blue1 (post-DC-promotion)
+  hosts: servers
+  gather_facts: no
+
+  tasks:
+
+    # --- Add DNS Forwarder ---
+    - name: Add DNS forwarder
+      win_shell: |
+        Add-DnsServerForwarder -IPAddress "10.0.17.4"
+
+    # --- Create OU Structure ---
+    - name: Create OU structure
+      win_shell: |
+        $domain = "DC=BLUE1,DC=LOCAL"
+
+        # Top-level OU
+        New-ADOrganizationalUnit -Name "BLUE1" -Path $domain -ProtectedFromAccidentalDeletion $false
+
+        # Child OUs under BLUE1
+        New-ADOrganizationalUnit -Name "Accounts" -Path "OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+        New-ADOrganizationalUnit -Name "Groups" -Path "OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+        New-ADOrganizationalUnit -Name "Computers" -Path "OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+
+        # Sub-OUs under Computers
+        New-ADOrganizationalUnit -Name "Servers" -Path "OU=Computers,OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+        New-ADOrganizationalUnit -Name "Workstations" -Path "OU=Computers,OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
