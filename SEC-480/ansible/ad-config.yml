@@ -1,0 +1,81 @@
+---
+- name: Deploy Active Directory Domain Services on dc-blue1
+  hosts: servers
+  gather_facts: no
+
+  vars_prompt:
+    - name: deployer_password
+      prompt: "Enter deployer password"
+      private: yes
+
+    - name: admin_password
+      prompt: "Enter desired Administrator password"
+      private: yes
+
+  tasks:
+
+    # --- Set Local Admin Password ---
+    - name: Set local Administrator password
+      win_user:
+        name: Administrator
+        password: "{{ admin_password }}"
+        state: present
+        password_never_expires: yes
+
+    # --- Set Hostname ---
+    - name: Set hostname to dc-blue1
+      win_hostname:
+        name: dc-blue1
+      register: hostname_result
+
+    - name: Reboot after hostname change
+      win_reboot:
+      when: hostname_result.reboot_required
+
+    # --- Create AD Forest ---
+    - name: Install AD DS and create BLUE1.LOCAL forest
+      win_domain:
+        dns_domain_name: BLUE1.LOCAL
+        safe_mode_password: "{{ admin_password }}"
+      register: domain_install
+
+    - name: Reboot after domain creation
+      win_reboot:
+        test_command: 'exit (Get-Service -Name DNS).Status -ne "Running"'
+      vars:
+        ansible_user: BLUE1\Administrator
+        ansible_password: "{{ admin_password }}"
+      when: domain_install.reboot_required
+
+    # --- Pause for AD services to stabilize ---
+    - name: Wait for AD services to fully start
+      pause:
+        seconds: 60
+
+    # --- Add DNS Forwarder ---
+    - name: Add DNS forwarder
+      win_shell: |
+        Add-DnsServerForwarder -IPAddress "10.0.17.4"
+      vars:
+        ansible_user: BLUE1\Administrator
+        ansible_password: "{{ admin_password }}"
+
+    # --- Create OU Structure ---
+    - name: Create OU structure
+      win_shell: |
+        $domain = "DC=BLUE1,DC=LOCAL"
+
+        # Top-level OU
+        New-ADOrganizationalUnit -Name "BLUE1" -Path $domain -ProtectedFromAccidentalDeletion $false
+
+        # Child OUs under BLUE1
+        New-ADOrganizationalUnit -Name "Accounts" -Path "OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+        New-ADOrganizationalUnit -Name "Groups" -Path "OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+        New-ADOrganizationalUnit -Name "Computers" -Path "OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+
+        # Sub-OUs under Computers
+        New-ADOrganizationalUnit -Name "Servers" -Path "OU=Computers,OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+        New-ADOrganizationalUnit -Name "Workstations" -Path "OU=Computers,OU=BLUE1,$domain" -ProtectedFromAccidentalDeletion $false
+      vars:
+        ansible_user: BLUE1\Administrator
+        ansible_password: "{{ admin_password }}"
