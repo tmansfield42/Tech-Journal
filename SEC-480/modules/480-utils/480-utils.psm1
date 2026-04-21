@@ -207,7 +207,52 @@ Function Set-Networkk(){
         Set-NetworkAdapter -NetworkAdapter $adapter -NetworkName $net 
         Write-Host "updated $($adapter.Name) on $($macname.Name) to $net"
 
+
+
+
     
+}
+ 
+Function Set-WindowsIP(){
+    # Connect to vCenter and load config
+    $conf = Get-480Config -config_path "/home/michael/Tech-Journal/SEC-480/480.json"
+    480Connect -server $conf.vcenter_server
+ 
+    # Pick the VM to configure
+    $vms = Get-VM
+    $index = 1
+    foreach($i in $vms)
+    {
+        Write-Host [$index] $i.Name
+        $index+=1
+    }
+    $pick = Read-Host "Which VM do you wish to set a static IP on?"
+    $vm = $vms[$pick -1]
+    Write-Host "You picked " $vm.Name
+ 
+    # Collect network info
+    $ip = Read-Host "Enter the static IP address "
+    $netmask = Read-Host "Enter the subnet mask "
+    $gateway = Read-Host "Enter the default gateway"
+    $dns = Read-Host "Enter the DNS server"
+    $interface = Read-Host "Enter the interface name"
+ 
+    # Collect guest credentials securely
+    $guestUser = Read-Host "Enter the guest username (e.g. deployer)"
+    $securePass = Read-Host "Enter the guest password" -AsSecureString
+    $guestPassword = (New-Object System.Net.NetworkCredential("", $securePass)).Password
+ 
+    # Build netsh commands
+    $script = @"
+netsh interface ip set address name="$interface" static $ip $netmask $gateway
+netsh interface ip set dns name="$interface" static $dns
+"@
+ 
+    Write-Host "Setting static IP on $($vm.Name)..." -ForegroundColor Yellow
+    Invoke-VMScript -VM $vm -ScriptText $script -GuestUser $guestUser -GuestPassword $guestPassword -ScriptType Bat
+    Write-Host "Static IP set to $ip on $($vm.Name)" -ForegroundColor Green
+}
+ 
         
 
 
