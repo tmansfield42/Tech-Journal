@@ -4,9 +4,8 @@ windows:
       hosts:
         dc-blue1:
           ansible_host: "10.0.5.5"
-          ansible_user: deployer
-          ansible_password: "{{ deployer_password }}"
+          ansible_user: BLUE1\Administrator
           ansible_connection: winrm
           ansible_port: 5985
-          ansible_winrm_transport: basic
+          ansible_winrm_transport: ntlm
           ansible_winrm_server_cert_validation: ignore

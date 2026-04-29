@@ -34,7 +34,7 @@
         post_reboot_delay: 30
       when: hostname_result.reboot_required
 
-    # --- Create AD Forest ---
+   
     - name: Install AD DS and create BLUE1.LOCAL forest
       microsoft.ad.domain:
         dns_domain_name: BLUE1.LOCAL
